@@ -11,10 +11,10 @@ mutable struct StandardSimplexe{T} <: AbstractStandard{T}
     status::AbstractStatus
     function StandardSimplexe(A::Array{T, 2}, b::Array{T, 1}, c::Array{T, 1}; verbose::Bool = true, b_idx::Array{Int, 1} = [-1]) where T
         m,n = size(A)
-       # @assert !(typeof(T) <: Integer)  "Type $T cannot be a subtype of Integer"
-       # @assert length(b) == m "dimension of A and b mismatch, size(A) = ($m, $n), length(b) = $(length(b)) != $m"
-       # @assert length(c) == n "dimension of A and c mismatch, size(A) = ($m, $n), length(c) = $(length(c)) != $n"
-       # @assert rank(A) == m "A is not a full rank Matrix"
+        @assert !(typeof(T) <: Integer)  "Type $T cannot be a subtype of Integer"
+        @assert length(b) == m "dimension of A and b mismatch, size(A) = ($m, $n), length(b) = $(length(b)) != $m"
+        @assert length(c) == n "dimension of A and c mismatch, size(A) = ($m, $n), length(c) = $(length(c)) != $n"
+        @assert rank(A) == m "A is not a full rank Matrix"
         ss = new{T}()
         ss.xstar = T[],  
         ss.vstar = T(Inf) 
@@ -205,16 +205,16 @@ end
 
 function findpivot(ss::StandardSimplexe{T}; verbose::Bool = false) where T
     M = ss.M
-    m = size(M, 1) - 1
+    m = size(M, 2) - 1 #changed 1 to 2
     c = ss.M[end, 1:end-1]
     b=  ss.M[1:end-1, end]
-    entering = argmin(c)
+    entering = argmin(b) #argmin(c) changed to b
     verbose && @show entering
     @assert c[entering] < 0 "simplexe is in an optimal state" #ss was optimal
     val = T(Inf)
     leaving = -1
     for k in 1:m
-        if (M[k, entering] > 0) && ((tobeat = b[k]/M[k, entering]) < val)
+        if (M[k, entering] > 0) && ((tobeat = c[k]/M[k, entering]) < val) #changed b to c
             leaving = k
             val = tobeat
         end
